@@ -1,8 +1,57 @@
 <template>
-  <section class="px-12 mx-auto">
-    <h2 class="text-emerald-500 font-bold text-4xl">You are signed in! 😍</h2>
+  <section class="h-full">
+    <section class="h-screen bg-neutral-900 flex flex-col justify-between">
+      <div ref="chatWindow" class="w-full overflow-y-scroll">
+        <article
+          v-for="(entry, index) in globalTextRenderedMessages"
+          :key="entry.message"
+          class="px-2 py-4 bg-neutral-800 flex gap-2 whitespace-normal break-words"
+          :class="{
+            '!py-0': globalTextRenderedMessages[index - 1]?.author === entry.author,
+            '!pb-0': globalTextRenderedMessages[index - 1]?.author !== entry.author,
+            // '!pb-4': index === globalTextRenderedMessages.length - 1,
+            'border-b border-neutral-700 !pb-4':
+              globalTextRenderedMessages[index + 1]?.author != entry.author
+          }"
+        >
+          <div
+            v-if="globalTextRenderedMessages[index - 1]?.author != entry.author"
+            class="bg-neutral-300 w-10 h-10 rounded-full flex-shrink-0"
+          ></div>
+          <section class="w-5/6">
+            <h5
+              v-if="globalTextRenderedMessages[index - 1]?.author != entry.author"
+              class="font-bold -mt-1 flex items-center gap-2"
+              :class="{
+                'text-emerald-500': isSelf(entry.author),
+                'text-blue-400': !isSelf(entry.author)
+              }"
+            >
+              <span>{{ entry.author }}</span>
+              <span class="text-sm text-neutral-400 font-light">{{
+                new Date(entry.posted).toLocaleString()
+              }}</span>
+            </h5>
+            <p :class="{ 'pl-12': globalTextRenderedMessages[index - 1]?.author === entry.author }">
+              {{ entry.message }}
+            </p>
+          </section>
+        </article>
+      </div>
+      <form class="p-1 flex items-center gap-1" @submit.prevent="handleGlobalMessage">
+        <InputText
+          v-model="newMessage"
+          name="message"
+          placeholder="Type your message..."
+          class="flex-grow"
+        />
+        <div class="flex-grow-0">
+          <BaseButton label="Send" icon="solar:plain-bold-duotone" type="submit" />
+        </div>
+      </form>
+    </section>
 
-    <section class="p-3 bg-neutral-900 mt-8 rounded-md">
+    <!-- <section class="p-3 bg-neutral-900 mt-8 rounded-md">
       <BaseButton
         :label="showDebug ? 'Hide Debug Panel' : 'Show Debug Panel'"
         @click="showDebug = !showDebug"
@@ -23,37 +72,12 @@
         </pre>
         </div>
       </div>
-    </section>
-
-    <section class="mt-12 p-3 bg-neutral-900 rounded-md h-[60vh] flex flex-col justify-between">
-      <div class="p-3 flex flex-col gap-2">
-        <div
-          v-for="message in globalTextRenderedMessages"
-          :key="message"
-          class="px-3 py-2 bg-neutral-800 flex flex-col rounded-xl"
-          :class="{ '!bg-neutral-700': isSelf(message.author) }"
-        >
-          <div class="font-bold tracking-wider text-neutral-400">{{ message.author }}</div>
-          {{ message.message }}
-        </div>
-      </div>
-    </section>
-    <form class="flex items-center" @submit.prevent="handleGlobalMessage">
-      <InputText
-        v-model="newMessage"
-        name="message"
-        placeholder="Type your message..."
-        class="flex-grow"
-      />
-      <div class="flex-grow-0">
-        <BaseButton label="Send" icon="solar:plain-bold-duotone" type="submit" />
-      </div>
-    </form>
+    </section> -->
   </section>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, watch, nextTick } from 'vue'
 import useAuth from '../composables/useAuth'
 import { supabase } from '../composables/useSupabase'
 
@@ -70,33 +94,65 @@ const globalTextChannel = supabase.channel('globalChat', {
 interface GlobalMessage {
   author: string
   message: string
+  posted: string
 }
 
 const globalTextRenderedMessages = ref<GlobalMessage[]>([])
 
+onMounted(async () => {
+  const { data, error } = await supabase
+    .from('globalChat')
+    .select()
+    .order('created_at', { ascending: true })
+
+  data?.forEach((message) => {
+    globalTextRenderedMessages.value.push({
+      author: message.author,
+      message: message.message,
+      posted: message.created_at
+    })
+  })
+
+  console.log(data)
+})
+
 globalTextChannel
-  .on('broadcast', { event: '*' }, ({ payload }) => {
-    globalTextRenderedMessages.value.push(payload)
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'globalChat' }, (payload) => {
+    console.log(payload)
+    globalTextRenderedMessages.value.push({
+      author: payload.new.author,
+      message: payload.new.message,
+      posted: payload.new.created_at
+    })
   })
   .subscribe()
+
+const chatWindow = ref<HTMLElement>()
+
+watch(globalTextRenderedMessages.value, (newVal, oldVal) => {
+  console.log(chatWindow.value?.scrollHeight)
+
+  nextTick(() => {
+    chatWindow.value?.scrollBy(0, chatWindow.value?.getBoundingClientRect().bottom + 1000)
+  })
+})
 
 const isSelf = (author: string): boolean => {
   return user?.value.user_metadata.alias === author
 }
 
-function handleGlobalMessage(): void {
+async function handleGlobalMessage(): Promise<void> {
   if (newMessage.value) {
-    globalTextChannel
-      .send({
-        type: 'broadcast',
-        event: 'Test message',
-        payload: {
-          message: newMessage.value,
-          author: user?.value.user_metadata.alias || '???'
-        }
+    const { data, error } = await supabase
+      .from('globalChat')
+      .insert({
+        author: user?.value?.user_metadata.alias,
+        author_id: user?.value?.id,
+        message: newMessage.value
       })
-      .then((response) => console.log(response))
+      .select()
 
+    console.log(data)
     newMessage.value = ''
   }
 }

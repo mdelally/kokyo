@@ -1,0 +1,14 @@
+/* @import './base.css'; */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+@import 'tailwindcss';
+
+body {
+  min-height: 100vh;
+  line-height: 1.6;
+  background-color: #0e0e0e;
+  color: white;
+  font-family: 'Noto Sans', sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

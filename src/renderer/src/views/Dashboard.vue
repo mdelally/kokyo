@@ -81,9 +81,9 @@ import { ref, onMounted, watch, nextTick } from 'vue'
 import useAuth from '../composables/useAuth'
 import { supabase } from '../composables/useSupabase'
 
-const { session, user } = useAuth()
+const { user } = useAuth()
 const newMessage = ref('')
-const showDebug = ref(false)
+// const showDebug = ref(false)
 
 const globalTextChannel = supabase.channel('globalChat', {
   config: {
@@ -100,7 +100,7 @@ interface GlobalMessage {
 const globalTextRenderedMessages = ref<GlobalMessage[]>([])
 
 onMounted(async () => {
-  const { data, error } = await supabase
+  const { data } = await supabase
     .from('globalChat')
     .select()
     .order('created_at', { ascending: true })
@@ -119,9 +119,13 @@ onMounted(async () => {
 globalTextChannel
   .on('postgres_changes', { event: '*', schema: 'public', table: 'globalChat' }, (payload) => {
     console.log(payload)
+
     globalTextRenderedMessages.value.push({
+      //@ts-ignore - asdasd
       author: payload.new.author,
+      //@ts-ignore - asdasd
       message: payload.new.message,
+      //@ts-ignore - asdasd
       posted: payload.new.created_at
     })
   })
@@ -129,7 +133,7 @@ globalTextChannel
 
 const chatWindow = ref<HTMLElement>()
 
-watch(globalTextRenderedMessages.value, (newVal, oldVal) => {
+watch(globalTextRenderedMessages.value, () => {
   console.log(chatWindow.value?.scrollHeight)
 
   nextTick(() => {
@@ -138,12 +142,12 @@ watch(globalTextRenderedMessages.value, (newVal, oldVal) => {
 })
 
 const isSelf = (author: string): boolean => {
-  return user?.value.user_metadata.alias === author
+  return user?.value?.user_metadata.alias === author
 }
 
 async function handleGlobalMessage(): Promise<void> {
   if (newMessage.value) {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('globalChat')
       .insert({
         author: user?.value?.user_metadata.alias,

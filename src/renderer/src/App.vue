@@ -9,6 +9,7 @@
 
   <section v-else class="h-screen flex">
     <nav
+      v-if="hasSession()"
       class="resize-x flex h-full flex-col min-w-2xs justify-between bg-amber-800 text-amber-100 font-bold tracking-wider text-md"
     >
       <section>
@@ -23,7 +24,7 @@
         </div>
       </section>
 
-      <div v-if="hasSession()" class="flex justify-between items-center gap-2 p-2">
+      <div class="flex justify-between items-center gap-2 p-2">
         <div class="flex items-center gap-2">
           <div class="bg-white rounded-full w-8 h-8"></div>
           <div class="font-light">{{ user?.user_metadata.alias }}</div>

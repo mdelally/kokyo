@@ -6,5 +6,3 @@ const supabaseUrl = import.meta.env.RENDERER_VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.RENDERER_VITE_SUPABASE_ANON_KEY
 
 export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey)
-
-console.log(supabase)

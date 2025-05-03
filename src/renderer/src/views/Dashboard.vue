@@ -1,5 +1,5 @@
 <template>
-  <section class="h-full">
+  <UDashboardPanel>
     <section class="h-screen bg-neutral-900 flex flex-col justify-between">
       <div ref="chatWindow" class="w-full overflow-y-scroll">
         <article
@@ -23,8 +23,8 @@
               v-if="globalTextRenderedMessages[index - 1]?.author != entry.author"
               class="font-bold -mt-1 flex items-center gap-2"
               :class="{
-                'text-emerald-500': isSelf(entry.author),
-                'text-blue-400': !isSelf(entry.author)
+                'text-primary-500': isSelf(entry.author),
+                'text-secondary-400': !isSelf(entry.author)
               }"
             >
               <span>{{ entry.author }}</span>
@@ -39,20 +39,23 @@
         </article>
       </div>
       <form class="p-1 flex items-center gap-1" @submit.prevent="handleGlobalMessage">
-        <InputText
+        <UInput
           v-model="newMessage"
           name="message"
           placeholder="Type your message..."
           class="flex-grow"
+          size="xl"
+          variant="subtle"
+          icon="solar:chat-round-bold-duotone"
         />
         <div class="flex-grow-0">
-          <BaseButton label="Send" icon="solar:plain-bold-duotone" type="submit" />
+          <UButton label="Send" size="xl" icon="solar:plain-bold-duotone" type="submit" />
         </div>
       </form>
     </section>
 
     <!-- <section class="p-3 bg-neutral-900 mt-8 rounded-md">
-      <BaseButton
+      <UButton
         :label="showDebug ? 'Hide Debug Panel' : 'Show Debug Panel'"
         @click="showDebug = !showDebug"
       />
@@ -73,7 +76,7 @@
         </div>
       </div>
     </section> -->
-  </section>
+  </UDashboardPanel>
 </template>
 
 <script setup lang="ts">

@@ -1,10 +1,7 @@
 import { resolve } from 'path'
 import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
 import vue from '@vitejs/plugin-vue'
-// @ts-ignore dont ask questions
-import tailwindcss from '@tailwindcss/vite'
-import Components from 'unplugin-vue-components/vite'
-import RekaResolver from 'reka-ui/resolver'
+import uiPro from '@nuxt/ui-pro/vite'
 
 export default defineConfig({
   main: {
@@ -19,6 +16,16 @@ export default defineConfig({
         '@renderer': resolve('src/renderer/src')
       }
     },
-    plugins: [vue(), tailwindcss(), Components({ dts: true, resolvers: [RekaResolver()] })]
+    plugins: [
+      vue(),
+      uiPro({
+        ui: {
+          colors: {
+            primary: 'orange',
+            neutral: 'stone'
+          }
+        }
+      })
+    ]
   }
 })

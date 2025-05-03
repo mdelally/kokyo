@@ -1,86 +1,126 @@
 <template>
-  <section v-if="!hasSession()" class="mx-auto max-w-3xl h-full flex flex-col justify-center">
+  <section
+    v-if="!hasSession()"
+    class="mx-auto min-w-2/3 xl:min-w-3/5 2xl:min-w-2/5 h-full flex flex-col justify-center"
+  >
     <div class="flex gap-2 items-center p-8 justify-center text-2xl text-amber-600">
       <Icon icon="solar:chat-round-bold-duotone" width="2em" />
       <p class="font-bold tracking-wider text-white">kōkyō</p>
     </div>
 
-    <div class="grid grid-cols-2 gap-4">
-      <div>
-        <form class="p-4 bg-neutral-900 rounded-md" @submit.prevent="handleSignIn">
-          <h3 class="mb-2 pb-2 text-md font-bold border-b-2 border-neutral-800">Sign In</h3>
-          <div>
-            <!-- <input class="inputField" required type="email" placeholder="Your email" v-model="email" /> -->
-            <InputText
-              v-model="email"
-              label="Email"
+    <div class="flex justify-center gap-4">
+      <div class="flex-grow">
+        <UCard variant="soft">
+          <template #header> Sign In </template>
+          <form @submit.prevent="handleSignIn">
+            <div>
+              <UFormField label="Email">
+                <UInput
+                  v-model="email"
+                  placeholder="Your email"
+                  name="email"
+                  type="email"
+                  class="w-full"
+                  required
+                />
+              </UFormField>
+              <UFormField label="Password" class="mt-2">
+                <UInput
+                  v-model="password"
+                  placeholder="Password"
+                  :type="showPassword ? 'text' : 'password'"
+                  class="w-full"
+                  :ui="{ trailing: 'pe-1' }"
+                >
+                  <template #trailing>
+                    <UButton
+                      color="neutral"
+                      variant="link"
+                      size="sm"
+                      :icon="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
+                      :aria-label="showPassword ? 'Hide password' : 'Show password'"
+                      :aria-pressed="showPassword"
+                      aria-controls="password"
+                      @click="showPassword = !showPassword"
+                    />
+                  </template>
+                </UInput>
+              </UFormField>
+              <div class="pt-3 flex justify-end">
+                <UButton
+                  label="Sign In"
+                  type="submit"
+                  icon="solar:login-2-bold-duotone"
+                  block
+                  :loading="isLoggingIn"
+                />
+              </div>
+            </div>
+          </form>
+        </UCard>
+      </div>
+
+      <USeparator orientation="vertical" label="OR" class="h-48" />
+
+      <UCard class="flex-grow">
+        <template #header>New here? Sign up!</template>
+
+        <form @submit.prevent="handleSignUp">
+          <UFormField label="Email">
+            <UInput
+              v-model="newEmail"
               placeholder="Your email"
               name="email"
               type="email"
+              class="w-full"
               required
             />
-            <InputText
-              v-model="password"
-              label="Password"
-              placeholder="Your password"
-              name="password"
-              type="password"
-              required
-            />
-            <div class="pt-3 flex justify-end">
-              <BaseButton label="Sign In" type="submit" icon="solar:login-2-bold-duotone" />
-            </div>
-          </div>
-        </form>
-      </div>
+          </UFormField>
 
-      <form class="p-4 bg-neutral-900 rounded-md" @submit.prevent="handleSignUp">
-        <h3 class="mb-2 pb-2 text-md font-bold border-b-2 border-neutral-800">
-          New here? Sign Up!
-        </h3>
-        <div>
-          <!-- <input class="inputField" required type="email" placeholder="Your email" v-model="email" /> -->
-          <InputText
-            v-model="newEmail"
-            label="Email"
-            placeholder="Your email"
-            name="email"
-            type="email"
-            required
-          />
-          <InputText
-            v-model="newAlias"
-            label="Alias"
-            placeholder="Desired alias"
-            name="alias"
-            type="text"
-            required
-          />
-          <InputText
-            v-model="newPassword"
-            label="Password"
-            placeholder="Your password"
-            name="password"
-            type="password"
-            required
-          />
-          <InputText
-            v-model="newPasswordConfirm"
-            label="Confirm Password"
-            placeholder="Confirm your password"
-            name="passwordConfirm"
-            type="password"
-            required
-          />
+          <UFormField label="Alias/Username" class="mt-2">
+            <UInput
+              v-model="newAlias"
+              placeholder="Desired alias"
+              name="alias"
+              type="text"
+              class="w-full"
+              required
+            />
+          </UFormField>
+
+          <UFormField label="Password" class="mt-2">
+            <UInput
+              v-model="newPassword"
+              placeholder="Password"
+              :type="showNewPassword ? 'text' : 'password'"
+              class="w-full"
+              :ui="{ trailing: 'pe-1' }"
+            >
+              <template #trailing>
+                <UButton
+                  color="neutral"
+                  variant="link"
+                  size="sm"
+                  :icon="showNewPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
+                  :aria-label="showNewPassword ? 'Hide password' : 'Show password'"
+                  :aria-pressed="showNewPassword"
+                  aria-controls="password"
+                  @click="showNewPassword = !showNewPassword"
+                />
+              </template>
+            </UInput>
+          </UFormField>
           <div class="pt-3 flex justify-end">
-            <BaseButton
-              label="Create New Account"
+            <UButton
+              label="Create Account"
               type="submit"
               icon="solar:add-square-bold-duotone"
+              :loading="isCreatingAccount"
+              block
             />
           </div>
-        </div>
-      </form>
+        </form>
+      </UCard>
     </div>
   </section>
 </template>
@@ -100,11 +140,17 @@ const password = ref('')
 const newEmail = ref('')
 const newAlias = ref('')
 const newPassword = ref('')
-const newPasswordConfirm = ref('')
+
+const showPassword = ref(false)
+const showNewPassword = ref(false)
+
+const isCreatingAccount = ref(false)
+const isLoggingIn = ref(false)
 
 async function handleSignIn(): Promise<void> {
-  console.log('Sign in?')
+  isLoggingIn.value = true
   await signIn(email.value, password.value)
+  isLoggingIn.value = false
 
   if (hasSession()) {
     router.push('/dashboard')
@@ -112,8 +158,9 @@ async function handleSignIn(): Promise<void> {
 }
 
 async function handleSignUp(): Promise<void> {
-  console.log('Sign up?')
+  isCreatingAccount.value = true
   await signUp(newEmail.value, newPassword.value, newAlias.value)
+  isCreatingAccount.value = false
 
   if (hasSession()) {
     router.push('/dashboard')

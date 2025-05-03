@@ -6,3 +6,5 @@ out
 *.log*
 .env
 *.env
+auto-imports.d.ts
+components.d.ts

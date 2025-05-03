@@ -15,11 +15,12 @@
       <UTooltip text="Click to Sign Out">
         <UButton
           :avatar="{
-            src: ''
+            src: '/Krombopulus.png'
           }"
           :label="user?.user_metadata.alias"
           color="neutral"
           variant="ghost"
+          size="xl"
           block
           @click="handleSignOut()"
         />

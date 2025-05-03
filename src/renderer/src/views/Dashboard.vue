@@ -14,10 +14,11 @@
               globalTextRenderedMessages[index + 1]?.author != entry.author
           }"
         >
-          <div
+          <UAvatar
             v-if="globalTextRenderedMessages[index - 1]?.author != entry.author"
-            class="bg-neutral-300 w-10 h-10 rounded-full flex-shrink-0"
-          ></div>
+            src="/Krombopulus.png"
+            size="3xl"
+          ></UAvatar>
           <section class="w-5/6">
             <h5
               v-if="globalTextRenderedMessages[index - 1]?.author != entry.author"
@@ -32,9 +33,11 @@
                 new Date(entry.posted).toLocaleString()
               }}</span>
             </h5>
-            <p :class="{ 'pl-12': globalTextRenderedMessages[index - 1]?.author === entry.author }">
-              {{ entry.message }}
-            </p>
+            <p
+              class="message"
+              :class="{ 'pl-14': globalTextRenderedMessages[index - 1]?.author === entry.author }"
+              v-html="entry.message"
+            ></p>
           </section>
         </article>
       </div>
@@ -84,6 +87,8 @@ import { ref, onMounted, watch, nextTick } from 'vue'
 import useAuth from '../composables/useAuth'
 import { supabase } from '../composables/useSupabase'
 
+import { marked } from 'marked'
+
 const { user } = useAuth()
 const newMessage = ref('')
 // const showDebug = ref(false)
@@ -111,7 +116,7 @@ onMounted(async () => {
   data?.forEach((message) => {
     globalTextRenderedMessages.value.push({
       author: message.author,
-      message: message.message,
+      message: marked.parse(message.message),
       posted: message.created_at
     })
   })
@@ -123,11 +128,21 @@ globalTextChannel
   .on('postgres_changes', { event: '*', schema: 'public', table: 'globalChat' }, (payload) => {
     console.log(payload)
 
+    if (!isSelf(payload.new.author)) {
+      const messageReceivedSound = new Audio('/sound/message_received.ogg')
+      messageReceivedSound.play()
+
+      const NOTIFICATION_TITLE = 'Kokyo message received!'
+      const NOTIFICATION_BODY = `You received a message from ${payload.new.author}`
+
+      new Notification(NOTIFICATION_TITLE, { body: NOTIFICATION_BODY, silent: true })
+    }
+
     globalTextRenderedMessages.value.push({
       //@ts-ignore - asdasd
       author: payload.new.author,
       //@ts-ignore - asdasd
-      message: payload.new.message,
+      message: marked.parse(payload.new.message),
       //@ts-ignore - asdasd
       posted: payload.new.created_at
     })

@@ -2,7 +2,9 @@
   <UDashboardPanel>
     <UPage class="px-4 pt-4">
       <section class="flex items-center gap-6">
-        <div class="bg-white w-32 h-32 rounded-full"></div>
+        <UAvatar src="/Krombopulus.png" class="w-32 h-32">
+          <div class="bg-black w-32"></div>
+        </UAvatar>
         <UPageHeader
           :title="user?.user_metadata.alias"
           headline="he/him"
@@ -32,17 +34,26 @@
 <script setup lang="ts">
 import useAuth from '@renderer/composables/useAuth'
 import { ref } from 'vue'
+import type { NavigationMenuItem } from '@nuxt/ui'
+
+import EditProfileModal from './profile/EditProfileModal.vue'
+const overlay = useOverlay()
 
 const { user } = useAuth()
 
-const items = ref([
+const editProfileModal = overlay.create(EditProfileModal)
+
+const items = ref<NavigationMenuItem[]>([
   {
     label: 'Actions',
     type: 'label'
   },
   {
     label: 'Edit Profile',
-    icon: 'solar:pen-2-bold-duotone'
+    icon: 'solar:pen-2-bold-duotone',
+    onSelect: () => {
+      const instance = editProfileModal.open()
+    }
   },
   {
     label: 'Friends',

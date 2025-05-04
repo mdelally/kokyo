@@ -17,7 +17,7 @@
           :avatar="{
             src: '/Krombopulus.png'
           }"
-          :label="user?.user_metadata.alias"
+          :label="profile?.alias"
           color="neutral"
           variant="ghost"
           size="xl"
@@ -32,10 +32,14 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui'
 import useAuth from '@renderer/composables/useAuth'
+import useProfile from '@renderer/composables/useProfile'
 import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 
 const { hasSession, signOut, user } = useAuth()
+
+const { profile } = useProfile()
+
 const router = useRouter()
 
 async function handleSignOut(): Promise<void> {

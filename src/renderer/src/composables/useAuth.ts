@@ -1,6 +1,7 @@
 import { Ref, ref } from 'vue'
 import { Session, SupabaseClient, User } from '@supabase/supabase-js'
 import { supabase } from './useSupabase'
+import useProfile from './useProfile'
 
 interface UseAuthReturn {
   supabase: SupabaseClient
@@ -17,15 +18,21 @@ const user = ref<User | null>(null)
 const session = ref<Session | null>(null)
 
 export default function useAuth(): UseAuthReturn {
+  const { initProfile, setProfile } = useProfile()
+
   async function signUp(email: string, password: string, alias: string): Promise<void> {
     try {
-      const { data } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: { alias }
         }
       })
+
+      if (!error && data.session) {
+        await initProfile(alias)
+      }
 
       session.value = data.session
       user.value = data.user
@@ -43,6 +50,8 @@ export default function useAuth(): UseAuthReturn {
 
       session.value = data.session
       user.value = data.user
+
+      await getSession()
     } catch (error) {
       alert(error)
     }
@@ -66,6 +75,8 @@ export default function useAuth(): UseAuthReturn {
 
       session.value = data.session
       user.value = userData.user
+
+      if (userData.user) await setProfile(userData?.user.id)
     } catch (error) {
       alert(error)
     }

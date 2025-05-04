@@ -81,11 +81,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Icon } from '@iconify/vue'
-
-type SocialLink = 'steam' | 'spotify' | 'bluesky' | 'mastodon' | 'website'
+import { type SocialLinkPlatform } from '@renderer/composables/useProfile'
 
 interface SocialLinkOption {
-  type: SocialLink
+  type: SocialLinkPlatform
   label: string
   icon: string
   url: string
@@ -110,7 +109,7 @@ const socialLinkOptions = ref<SocialLinkOption[]>([
 
 const localSocialLinks = ref<SocialLinkOption[]>([])
 
-const newLinkPlatform = ref<SocialLink>()
+const newLinkPlatform = ref<SocialLinkPlatform>()
 const newLinkUrl = ref<string>()
 
 function addLocalSocialLink() {

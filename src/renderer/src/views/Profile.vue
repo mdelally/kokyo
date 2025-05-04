@@ -5,18 +5,13 @@
         <UAvatar src="/Krombopulus.png" class="w-32 h-32">
           <div class="bg-black w-32"></div>
         </UAvatar>
-        <UPageHeader
-          :title="user?.user_metadata.alias"
-          headline="he/him"
-          class="flex-grow"
-          :links="links"
-        />
+        <UPageHeader :title="profile?.alias" headline="he/him" class="flex-grow" :links="links" />
       </section>
 
       <UPageBody>
         <UPageCard title="About Me" description="Some text for the bio...">
           <strong>Member Since</strong>
-          <p class="font-light italic">{{ new Date(user?.created_at).toDateString() }}</p>
+          <p class="font-light italic">{{ profile?.createdAt.toDateString() }}</p>
         </UPageCard>
       </UPageBody>
 
@@ -33,13 +28,15 @@
 
 <script setup lang="ts">
 import useAuth from '@renderer/composables/useAuth'
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import type { NavigationMenuItem } from '@nuxt/ui'
 
 import EditProfileModal from './profile/EditProfileModal.vue'
+import useProfile from '@renderer/composables/useProfile'
 const overlay = useOverlay()
 
 const { user } = useAuth()
+const { profile } = useProfile()
 
 const editProfileModal = overlay.create(EditProfileModal)
 

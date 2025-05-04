@@ -88,6 +88,7 @@ import useAuth from '../composables/useAuth'
 import { supabase } from '../composables/useSupabase'
 
 import { marked } from 'marked'
+import useProfile from '@renderer/composables/useProfile'
 
 const { user } = useAuth()
 const newMessage = ref('')
@@ -99,6 +100,8 @@ const globalTextChannel = supabase.channel('globalChat', {
   }
 })
 
+const { profile } = useProfile()
+console.log(profile)
 interface GlobalMessage {
   author: string
   message: string
